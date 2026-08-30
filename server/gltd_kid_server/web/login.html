@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login — GLTD Kid Control</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main>
+    <div class="card auth-wrap">
+      <h1>GLTD Kid Control</h1>
+      <p class="muted">Acesso do responsável</p>
+      <div class="alert error" id="err"></div>
+      <label>Usuário</label>
+      <input id="user" autocomplete="username">
+      <label>Senha</label>
+      <input id="pass" type="password" autocomplete="current-password">
+      <div style="margin-top:16px">
+        <button class="btn" id="login" style="width:100%">Entrar</button>
+      </div>
+    </div>
+  </main>
+  <script>
+    async function boot() {
+      const st = await (await fetch('/api/setup/status')).json();
+      if (!st.setup_done) { location.href = '/setup'; return; }
+      const me = await fetch('/api/me');
+      if (me.ok) { location.href = '/dashboard'; }
+    }
+    document.getElementById('login').onclick = async () => {
+      const err = document.getElementById('err');
+      err.classList.remove('show');
+      const r = await fetch('/api/login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          admin_user: document.getElementById('user').value,
+          admin_password: document.getElementById('pass').value
+        })
+      });
+      if (r.ok) { location.href = '/dashboard'; }
+      else {
+        const d = await r.json();
+        err.textContent = d.error || 'Falha no login';
+        err.classList.add('show');
+      }
+    };
+    document.getElementById('pass').onkeydown = e => { if (e.key === 'Enter') document.getElementById('login').click(); };
+    boot();
+  </script>
+</body>
+</html>

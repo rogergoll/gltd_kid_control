@@ -1,0 +1,21 @@
+handle,nome_canal,url,categoria,motivo_bloqueio,nivel_risco,alternativa_saudavel
+@felca,Felca,https://www.youtube.com/@felca,brainrot,Humor ácido e piadas adultas disfarçadas de ironia,alto,Ciência para crianças
+@Orochinho,Orochinho,https://www.youtube.com/@Orochinho,brainrot,Humor negro e conteúdo sexualizado,alto,Ciência para crianças
+@MaiconKuster,Maicon Küster,https://www.youtube.com/@MaiconKuster,brainrot,Piadas adultas e de duplo sentido,alto,Ciência para crianças
+@CanalCanalha,Canal Canalha,https://www.youtube.com/@CanalCanalha,brainrot,Humor adulto e sarcasmo pesado,alto,Ciência para crianças
+@Enaldinho,Enaldinho,https://www.youtube.com/@Enaldinho,adulto_fingindo_crianca,Adulto fazendo desafios e gritaria voltados a crianças,alto,Experiências científicas
+@rezendeevil,Rezende,https://www.youtube.com/@rezendeevil,adulto_fingindo_crianca,Adulto com pegadinhas e desafios viciantes para crianças,alto,Experiências científicas
+@LuvaDePedreiro,Luva de Pedreiro,https://www.youtube.com/@LuvaDePedreiro,adulto_fingindo_crianca,Fórmula repetitiva de comemorações que vicia o algoritmo,medio,Esportes e atividades físicas
+@Malena010102,Malena,https://www.youtube.com/@Malena010102,adulto_fingindo_crianca,Reações exageradas e comunidade tóxica de games,medio,Jogos educativos e lógica
+@ViniAbreu,Vini Abreu,https://www.youtube.com/@ViniAbreu,adulto_fingindo_crianca,Minecraft com gritaria e fórmula repetitiva,medio,Programação para crianças
+@LorelayFox,Lorelay Fox,https://www.youtube.com/@LorelayFox,identitarismo_lgbtq,Maquiagem misturada com pauta de gênero e identidade,alto,Artes manuais e artesanato
+@DivaDepressao,Diva Depressão,https://www.youtube.com/@DivaDepressao,identitarismo_lgbtq,Humor adulto com pauta de identidade,alto,História mundial
+@LouiePonto,Louie Ponto,https://www.youtube.com/@LouiePonto,identitarismo_lgbtq,Vlog de casal com pauta de identidade,alto,História mundial
+@BANGTANTV,BTS,https://www.youtube.com/@BANGTANTV,kpop,Grupo K-pop com estética adulta e culto de fãs,medio,Música instrumental e erudita
+@BLACKPINK,BLACKPINK,https://www.youtube.com/@BLACKPINK,kpop,Grupo K-pop com estética adulta,medio,Música instrumental e erudita
+@HYBELABELS,HYBE Labels,https://www.youtube.com/@HYBELABELS,kpop,Agregador de K-pop com estética adulta,medio,Música instrumental e erudita
+@JYPEntertainment,JYP Entertainment,https://www.youtube.com/@JYPEntertainment,kpop,Agregador de K-pop com estética adulta,medio,Música instrumental e erudita
+@SMTOWN,SM Entertainment,https://www.youtube.com/@SMTOWN,kpop,Agregador de K-pop com estética adulta,medio,Música instrumental e erudita
+@StrayKids,Stray Kids,https://www.youtube.com/@StrayKids,kpop,Grupo K-pop com estética adulta,medio,Música instrumental e erudita
+@NewJeans_official,NewJeans,https://www.youtube.com/@NewJeans_official,kpop,Grupo K-pop com adultização de menores,alto,Música instrumental e erudita
+@TWICE,TWICE,https://www.youtube.com/@TWICE,kpop,Grupo K-pop com estética adulta,medio,Música instrumental e erudita

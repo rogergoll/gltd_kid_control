@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gltd-kid-control-server"
+version = "0.1.0"
+description = "Servidor de controle parental da familia (perfis, listas e historico de YouTube)"
+readme = "../../README_AGENT.MD"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "GLTD" }]
+keywords = ["parental", "youtube", "kids", "lan", "control"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Operating System :: POSIX :: Linux",
+]
+dependencies = []
+
+[project.scripts]
+gltd-kid-server = "gltd_kid_server.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["gltd_kid_server*"]

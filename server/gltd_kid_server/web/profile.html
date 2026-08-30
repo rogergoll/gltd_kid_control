@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Perfil — GLTD Kid Control</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1 id="pname">Perfil</h1>
+    <span class="spacer"></span>
+    <a href="/dashboard">← Painel</a>
+    <a href="/settings">Configurações</a>
+    <button id="logout">Sair</button>
+  </header>
+  <main>
+    <div class="tabs">
+      <button data-tab="config" class="active">Configurações</button>
+      <button data-tab="youtube">YouTube</button>
+      <button data-tab="apps">Aplicativos</button>
+      <button data-tab="urls">URLs navegadas</button>
+    </div>
+    <div class="alert error" id="err"></div>
+    <div class="alert ok" id="ok"></div>
+
+    <div id="config" class="tabpanel active">
+      <div class="card">
+        <h2>Dados do perfil</h2>
+        <label>Nome da criança</label><input id="f_name">
+        <div class="grid cols-2">
+          <div><label>Usuário Linux</label><input id="f_user"></div>
+          <div><label>IP na LAN</label><input id="f_ip"></div>
+        </div>
+        <label>Navegadores permitidos</label><input id="f_browsers">
+        <label>Token do client (para configurar a máquina da criança)</label>
+        <div style="display:flex; gap:8px">
+          <input id="f_token" readonly style="font-family:ui-monospace,monospace">
+          <button class="btn ghost small" id="copyToken" style="white-space:nowrap">Copiar</button>
+        </div>
+        <label>Listas de bloqueio</label><select id="f_block" multiple></select>
+        <label>Listas de recomendação</label><select id="f_allow" multiple></select>
+        <div style="margin-top:16px">
+          <button class="btn" id="saveProfile">Salvar alterações</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Filtros de expressões</h2>
+        <div id="filters" style="margin-bottom:12px"></div>
+        <div style="display:flex; gap:8px">
+          <input id="newFilter" placeholder="Ex.: namoro, funk, lgbt...">
+          <button class="btn" id="addFilter">Adicionar filtro</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Bloquear canal no YouTube</h2>
+        <p class="muted">Adicione um canal (handle ou URL) para bloquear. Vale para este perfil.</p>
+        <div style="display:flex; gap:8px">
+          <input id="blockHandle" placeholder="Ex.: @canal ou https://youtube.com/@canal">
+          <button class="btn" id="addChannel" style="white-space:nowrap">Bloquear canal</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="youtube" class="tabpanel">
+      <div class="card" style="display:flex; gap:8px">
+        <input id="ytSearch" placeholder="Pesquisar vídeos (título, canal ou descrição)...">
+        <button class="btn ghost" id="ytClear" style="white-space:nowrap">Limpar</button>
+      </div>
+      <div class="card"><table><thead><tr><th></th><th>Título</th><th>Canal</th><th>Descrição</th><th>Quando</th></tr></thead><tbody id="ytBody"></tbody></table></div>
+    </div>
+
+    <div id="apps" class="tabpanel">
+      <div class="card">
+        <h2>Tempo por aplicativo</h2>
+        <div id="appTotals"></div>
+      </div>
+      <div class="card"><table><thead><tr><th>Aplicativo</th><th>Duração</th><th>Início</th></tr></thead><tbody id="appBody"></tbody></table></div>
+    </div>
+
+    <div id="urls" class="tabpanel">
+      <div class="card" style="display:flex; gap:8px">
+        <input id="urlSearch" placeholder="Pesquisar URLs (endereço ou título)...">
+        <button class="btn ghost" id="urlClear" style="white-space:nowrap">Limpar</button>
+      </div>
+      <div class="card"><table><thead><tr><th>URL</th><th>Título</th><th>Quando</th></tr></thead><tbody id="urlBody"></tbody></table></div>
+    </div>
+  </main>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const params = new URLSearchParams(location.search);
+    const PID = params.get('id');
+    let profile = null, lists = [];
+
+    function esc(s) { return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function fmt(s) { s = Math.round(s/60); const h = Math.floor(s/60), m = s%60; return h ? h+'h '+m+'min' : m+'min'; }
+
+    async function blockAction(kind, body) {
+      const r = await fetch('/api/profiles/' + PID + '/block-' + kind, {
+        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)
+      });
+      const d = await r.json();
+      if (d.ok) showOk('Bloqueado (' + kind + '): ' + (d.handle || body.url || ''));
+      else { $('err').textContent = d.error || 'erro'; $('err').classList.add('show'); }
+    }
+
+    async function loadProfile() {
+      const r = await fetch('/api/profiles/' + PID);
+      if (!r.ok) { location.href = '/dashboard'; return; }
+      profile = await r.json();
+      $('pname').textContent = profile.name;
+      $('f_name').value = profile.name;
+      $('f_user').value = profile.linux_user || '';
+      $('f_ip').value = profile.lan_ip || '';
+      $('f_browsers').value = (profile.allowed_browsers || []).join(', ');
+      $('f_token').value = profile.client_token || '(sem token)';
+      lists = await (await fetch('/api/lists/files')).json();
+      fillSelect($('f_block'), 'block', profile.block_lists || []);
+      fillSelect($('f_allow'), 'allow', profile.allow_lists || []);
+      renderFilters();
+    }
+
+    function fillSelect(sel, kind, selected) {
+      sel.innerHTML = lists.filter(l => l.kind === kind).map(l =>
+        `<option value="${l.filename}" ${selected.includes(l.filename) ? 'selected' : ''}>${l.filename} (${l.count})</option>`).join('');
+    }
+
+    function renderFilters() {
+      const el = $('filters');
+      el.innerHTML = (profile.filters || []).map((f, i) =>
+        `<span class="pill" style="margin-right:6px">${f} <a href="#" data-fx="${i}" style="color:var(--bad); text-decoration:none">✕</a></span>`).join('') || '<span class="muted">nenhum filtro</span>';
+    }
+
+    $('copyToken').onclick = () => {
+      const t = $('f_token');
+      t.select();
+      document.execCommand('copy');
+      showOk('Token copiado.');
+    };
+
+    $('addFilter').onclick = async () => {      const v = $('newFilter').value.trim();
+      if (!v) return;
+      const r = await fetch('/api/filters', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({profile_id: PID, expression: v})});
+      const d = await r.json();
+      if (d.ok) { profile.filters = d.filters; $('newFilter').value = ''; renderFilters(); }
+    };
+
+    document.addEventListener('click', async e => {
+      const i = e.target.dataset.fx;
+      if (i !== undefined) {
+        profile.filters.splice(+i, 1);
+        await fetch('/api/profiles/' + PID, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({filters: profile.filters})});
+        renderFilters();
+      }
+    });
+
+    $('saveProfile').onclick = async () => {
+      const body = {
+        name: $('f_name').value, linux_user: $('f_user').value, lan_ip: $('f_ip').value,
+        allowed_browsers: $('f_browsers').value.split(',').map(s=>s.trim()).filter(Boolean),
+        block_lists: Array.from($('f_block').selectedOptions).map(o=>o.value),
+        allow_lists: Array.from($('f_allow').selectedOptions).map(o=>o.value)
+      };
+      const r = await fetch('/api/profiles/' + PID, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+      if (r.ok) { showOk('Salvo.'); loadProfile(); }
+      else { const d = await r.json(); $('err').textContent = d.error || 'erro'; $('err').classList.add('show'); }
+    };
+
+    function showOk(m) { const o = $('ok'); o.textContent = m; o.classList.add('show'); setTimeout(()=>o.classList.remove('show'), 2500); }
+
+    let ytData = [];
+    async function loadYouTube() {
+      const r = await fetch('/api/profiles/' + PID + '/youtube');
+      ytData = await r.json();
+      renderYouTube();
+    }
+    function renderYouTube() {
+      const q = ($('ytSearch').value || '').toLowerCase();
+      const items = q ? ytData.filter(h =>
+        (h.video_title || '').toLowerCase().includes(q) ||
+        (h.channel_name || '').toLowerCase().includes(q) ||
+        (h.description || '').toLowerCase().includes(q)) : ytData;
+      $('ytBody').innerHTML = items.map(h => {
+        const ch = h.channel_handle || h.channel_name || '';
+        return `<tr>
+          <td>${h.thumb_url ? `<a href="${esc(h.video_url)}" target="_blank"><img class="thumb" src="${esc(h.thumb_url)}"></a>` : ''}</td>
+          <td>
+            <a href="${esc(h.video_url)}" target="_blank" style="color:var(--text)">${esc(h.video_title) || '—'}</a>
+            <div style="margin-top:6px"><button class="btn small danger" data-block-video="${esc(h.video_url)}" data-title="${esc(h.video_title)}">Bloquear vídeo</button></div>
+          </td>
+          <td>${esc(h.channel_name) || '—'}
+            ${ch ? `<div style="margin-top:6px"><button class="btn small danger" data-block-channel="${esc(ch)}">Bloquear canal</button></div>` : ''}
+          </td>
+          <td class="muted">${esc((h.description || '').slice(0,120))}</td>
+          <td class="muted">${esc(h.watched_at || '')}</td>
+        </tr>`;
+      }).join('') || '<tr><td colspan="5" class="muted">Sem histórico ainda.</td></tr>';
+    }
+    $('ytSearch').oninput = renderYouTube;
+    $('ytClear').onclick = () => { $('ytSearch').value = ''; renderYouTube(); };
+
+    $('addChannel').onclick = async () => {
+      const h = $('blockHandle').value.trim();
+      if (!h) return;
+      const r = await fetch('/api/profiles/' + PID + '/block-channel', {
+        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({handle:h})
+      });
+      const d = await r.json();
+      if (d.ok) { showOk('Canal bloqueado: ' + d.handle + (d.already ? ' (já estava)' : '')); $('blockHandle').value=''; loadProfile(); }
+      else { $('err').textContent = d.error || 'erro'; $('err').classList.add('show'); }
+    };
+
+    document.addEventListener('click', e => {
+      if (e.target.dataset.blockVideo) {
+        blockAction('video', { url: e.target.dataset.blockVideo, name: e.target.dataset.title || '' });
+      } else if (e.target.dataset.blockChannel) {
+        blockAction('channel', { handle: e.target.dataset.blockChannel });
+      } else if (e.target.dataset.blockUrl) {
+        blockAction('url', { url: e.target.dataset.blockUrl });
+      } else if (e.target.dataset.blockDomain) {
+        blockAction('domain', { url: e.target.dataset.blockDomain });
+      }
+    });
+
+    async function loadApps() {
+      const d = await (await fetch('/api/profiles/' + PID + '/usage')).json();
+      const totals = d.totals || [];
+      const max = Math.max(...totals.map(t => t.total_seconds), 1);
+      $('appTotals').innerHTML = totals.map(t =>
+        `<div style="margin-bottom:12px"><div style="display:flex; justify-content:space-between"><b>${t.app_name}</b><span class="muted">${fmt(t.total_seconds)} · ${t.sessions} sessões</span></div>
+         <div class="bar"><span style="width:${Math.round(t.total_seconds/max*100)}%"></span></div></div>`).join('') || '<p class="muted">Sem dados de uso.</p>';
+      $('appBody').innerHTML = (d.entries || []).map(a =>
+        `<tr><td>${a.app_name}</td><td>${fmt(a.duration_seconds)}</td><td class="muted">${a.started_at}</td></tr>`).join('') || '<tr><td colspan="3" class="muted">Sem registros.</td></tr>';
+    }
+
+    let urlData = [];
+    async function loadUrls() {
+      urlData = await (await fetch('/api/profiles/' + PID + '/urls')).json();
+      renderUrls();
+    }
+    function renderUrls() {
+      const q = ($('urlSearch').value || '').toLowerCase();
+      const items = q ? urlData.filter(u =>
+        (u.url || '').toLowerCase().includes(q) || (u.title || '').toLowerCase().includes(q)) : urlData;
+      $('urlBody').innerHTML = items.map(u =>
+        `<tr>
+          <td class="mono">
+            <a href="${esc(u.url)}" target="_blank" style="color:var(--text)">${esc(u.url)}</a>
+            ${u.blocked ? '<span class="pill block" style="margin-left:6px">bloqueado</span>' : ''}
+            <div style="margin-top:6px">
+              <button class="btn small danger" data-block-url="${esc(u.url)}">Bloquear URL</button>
+              <button class="btn small danger" data-block-domain="${esc(u.url)}">Bloquear domínio</button>
+            </div>
+          </td>
+          <td>${esc(u.title) || ''}</td>
+          <td class="muted">${esc(u.visited_at) || ''}</td>
+        </tr>`).join('') || '<tr><td colspan="3" class="muted">Sem URLs registradas.</td></tr>';
+    }
+    $('urlSearch').oninput = renderUrls;
+    $('urlClear').onclick = () => { $('urlSearch').value = ''; renderUrls(); };
+
+    const loaders = { config: ()=>0, youtube: loadYouTube, apps: loadApps, urls: loadUrls };
+    document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
+      document.querySelectorAll('.tabs button').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('.tabpanel').forEach(x => x.classList.remove('active'));
+      b.classList.add('active'); $(b.dataset.tab).classList.add('active');
+      loaders[b.dataset.tab]();
+    });
+
+    $('logout').onclick = async () => { await fetch('/api/logout', {method:'POST'}); location.href = '/login'; };
+
+    (async () => {
+      const st = await (await fetch('/api/setup/status')).json();
+      if (!st.setup_done) { location.href = '/setup'; return; }
+      const me = await fetch('/api/me');
+      if (!me.ok) { location.href = '/login'; return; }
+      await loadProfile();
+      loadYouTube();
+    })();
+  </script>
+</body>
+</html>

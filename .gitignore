@@ -1,0 +1,35 @@
+# ---- dados em runtime (histórico, logs, pid) ----
+/data/
+
+# ---- configuração real (contém senha/hash do admin e do banco) ----
+/config/server.json
+
+# ---- chaves privadas (assinatura da extensão) ----
+/client/keys/
+*.pem
+*.key
+*.p12
+*.pfx
+
+# ---- artefatos de build ----
+**/dist/
+*.deb
+*.crx
+
+# ---- listas manuais geradas em runtime (block_manual_<id>.csv) ----
+/lists/block_manual_*.csv
+
+# ---- dependências vendored (instalar via apt/pip) ----
+/vendor/
+
+# ---- python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+
+# ---- sistema / editor ----
+.DS_Store
+Thumbs.db
+*.swp

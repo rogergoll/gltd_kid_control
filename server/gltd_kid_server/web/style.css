@@ -1,0 +1,96 @@
+:root {
+  color-scheme: dark;
+  --bg: #0f1419;
+  --panel: #1b222b;
+  --panel2: #223040;
+  --border: #2a3440;
+  --text: #e6edf3;
+  --muted: #9fb3c8;
+  --accent: #35b5e8;
+  --accent2: #1a6fa8;
+  --ok: #3fb950;
+  --warn: #d29922;
+  --bad: #f85149;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  margin: 0; background: var(--bg); color: var(--text); font-size: 15px;
+}
+header.topbar {
+  display: flex; align-items: center; gap: 16px;
+  padding: 14px 24px; background: var(--panel); border-bottom: 1px solid var(--border);
+}
+header.topbar h1 { font-size: 18px; margin: 0; }
+header.topbar .spacer { flex: 1; }
+header.topbar a, header.topbar button {
+  color: var(--muted); text-decoration: none; background: none; border: none;
+  font-size: 14px; cursor: pointer;
+}
+header.topbar a:hover, header.topbar button:hover { color: var(--text); }
+main { padding: 24px; max-width: 1180px; margin: 0 auto; }
+h2 { font-size: 17px; margin: 0 0 12px; }
+h3 { font-size: 15px; margin: 0 0 8px; }
+.card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 10px; padding: 20px; margin-bottom: 20px;
+}
+.grid { display: grid; gap: 16px; }
+.cols-2 { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; }
+tr:hover td { background: var(--panel2); }
+.muted { color: var(--muted); font-size: 13px; }
+.pill {
+  display: inline-block; padding: 2px 9px; border-radius: 12px;
+  font-size: 12px; background: var(--panel2); color: var(--muted);
+}
+.pill.block { background: rgba(248,81,73,.15); color: var(--bad); }
+.pill.allow { background: rgba(63,185,80,.15); color: var(--ok); }
+.btn {
+  display: inline-block; padding: 8px 16px; border-radius: 8px; cursor: pointer;
+  background: var(--accent2); color: #fff; border: 1px solid transparent; font-size: 14px;
+}
+.btn:hover { background: var(--accent); }
+.btn.ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn.danger { background: rgba(248,81,73,.2); color: var(--bad); }
+.btn.small { padding: 4px 10px; font-size: 13px; }
+input, select, textarea {
+  width: 100%; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--bg); color: var(--text); font-size: 14px;
+}
+label { display: block; font-size: 13px; color: var(--muted); margin: 12px 0 4px; }
+.form-row { margin-bottom: 4px; }
+.alert { padding: 10px 14px; border-radius: 8px; margin: 10px 0; font-size: 14px; display: none; }
+.alert.show { display: block; }
+.alert.error { background: rgba(248,81,73,.15); color: var(--bad); }
+.alert.ok { background: rgba(63,185,80,.15); color: var(--ok); }
+.auth-wrap { max-width: 400px; margin: 80px auto; }
+.tabs { display: flex; gap: 8px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+.tabs button {
+  background: none; border: none; color: var(--muted); padding: 10px 16px;
+  cursor: pointer; font-size: 14px; border-bottom: 2px solid transparent;
+}
+.tabs button.active { color: var(--text); border-bottom-color: var(--accent); }
+.tabpanel { display: none; }
+.tabpanel.active { display: block; }
+.thumb { width: 60px; border-radius: 6px; }
+.avatar {
+  width: 48px; height: 48px; border-radius: 50%; background: var(--accent2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 700; color: #fff;
+}
+.profile-row { display: flex; align-items: center; gap: 14px; }
+.stat { font-size: 22px; font-weight: 700; }
+.stat-box { text-align: center; padding: 14px; border-radius: 10px; background: var(--panel2); }
+.bar { height: 10px; background: var(--panel2); border-radius: 6px; overflow: hidden; }
+.bar > span { display: block; height: 100%; background: var(--accent); }
+.mono { font-family: ui-monospace, monospace; font-size: 13px; word-break: break-all; }
+.wizard-steps { display: flex; gap: 8px; margin-bottom: 20px; }
+.wizard-steps .step {
+  flex: 1; text-align: center; padding: 10px; border-radius: 8px;
+  background: var(--panel2); color: var(--muted); font-size: 13px;
+}
+.wizard-steps .step.active { background: var(--accent2); color: #fff; }
+.hidden { display: none !important; }

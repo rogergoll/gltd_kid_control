@@ -1,0 +1,29 @@
+{
+  "listen_host": "0.0.0.0",
+  "listen_port": 8123,
+  "data_dir": "/var/lib/gltd-kid-control",
+  "lists_dir": "/var/lib/gltd-kid-control/lists",
+  "history_db": "/var/lib/gltd-kid-control/history.sqlite3",
+  "profiles": [
+    {
+      "id": "child1",
+      "name": "Crianca 1",
+      "lan_ip": "192.168.1.100",
+      "linux_user": "child1",
+      "allowed_browsers": ["brave-browser"],
+      "block_lists": ["block_child1.csv", "block_baixa_cultura.csv"],
+      "allow_lists": ["allow_child1.csv"],
+      "filters": []
+    },
+    {
+      "id": "child2",
+      "name": "Crianca 2",
+      "lan_ip": "192.168.1.101",
+      "linux_user": "child2",
+      "allowed_browsers": ["brave-browser"],
+      "block_lists": ["block_child2.csv"],
+      "allow_lists": ["allow_child2.csv"],
+      "filters": []
+    }
+  ]
+}

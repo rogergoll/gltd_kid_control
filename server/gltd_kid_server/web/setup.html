@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Configuração inicial — GLTD Kid Control</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main style="max-width:760px">
+    <h1>Configuração inicial</h1>
+    <p class="muted">Primeiro acesso: crie o usuário administrador e os perfis das crianças.</p>
+
+    <div class="wizard-steps">
+      <div class="step active" id="s1">1. Administrador</div>
+      <div class="step" id="s2">2. Perfis das crianças</div>
+      <div class="step" id="s3">3. Concluir</div>
+    </div>
+
+    <div class="alert error" id="err"></div>
+    <div class="alert ok" id="ok"></div>
+
+    <div id="step1" class="card">
+      <h2>Usuário administrador</h2>
+      <label>Usuário</label>
+      <input id="admin_user" value="admin">
+      <label>Senha (mín. 4 caracteres)</label>
+      <input id="admin_pass" type="password">
+      <label>Confirmar senha</label>
+      <input id="admin_pass2" type="password">
+      <label>Porta do painel</label>
+      <input id="port" value="8123">
+      <div style="margin-top:16px; text-align:right">
+        <button class="btn" id="next1">Continuar</button>
+      </div>
+    </div>
+
+    <div id="step2" class="hidden">
+      <div class="card">
+        <h2>Perfis das crianças</h2>
+        <p class="muted">Você pode criar os perfis agora ou depois, no painel.</p>
+        <div id="profileList"></div>
+        <div style="margin-top:12px">
+          <button class="btn ghost" id="addProfile">+ Adicionar perfil</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Enviar lista de filtros (CSV)</h2>
+        <p class="muted">Use os modelos de bloqueio/recomendação já usados (handle, nome, url, categoria, ...).</p>
+        <label>Arquivo CSV</label>
+        <input type="file" id="csvFile" accept=".csv">
+        <div style="margin-top:12px">
+          <button class="btn ghost" id="uploadCsv">Enviar lista</button>
+        </div>
+        <div id="csvResult" class="muted" style="margin-top:8px"></div>
+      </div>
+      <div style="text-align:right">
+        <button class="btn ghost" id="back1">Voltar</button>
+        <button class="btn" id="finish">Concluir configuração</button>
+      </div>
+    </div>
+
+    <div id="step3" class="card hidden">
+      <h2>Tudo pronto!</h2>
+      <p>Configuração concluída. Acesse o painel para gerenciar os perfis.</p>
+      <div style="margin-top:16px">
+        <button class="btn" id="goDash">Ir para o painel</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const err = $('err'), ok = $('ok');
+    let profiles = [];
+    let lists = [];
+
+    async function loadLists() {
+      try {
+        const r = await fetch('/api/lists/files');
+        if (r.ok) lists = await r.json();
+      } catch (e) {}
+    }
+
+    function show(id) {
+      ['step1','step2','step3'].forEach(s => $(s).classList.toggle('hidden', s !== id));
+      ['s1','s2','s3'].forEach(s => $(s).classList.toggle('active', s === id));
+    }
+
+    function renderProfiles() {
+      const el = $('profileList');
+      el.innerHTML = profiles.map((p, i) => `
+        <div class="card" style="margin-bottom:12px">
+          <div class="profile-row">
+            <div class="avatar">${(p.name[0] || '?').toUpperCase()}</div>
+            <div><b>${p.name}</b><div class="muted">usuário Linux: ${p.linux_user || '—'} · IP: ${p.lan_ip || '—'}</div></div>
+          </div>
+          <label>Nome da criança</label>
+          <input data-i="${i}" data-f="name" value="${p.name}">
+          <div class="grid cols-2">
+            <div><label>Usuário Linux</label><input data-i="${i}" data-f="linux_user" value="${p.linux_user || ''}"></div>
+            <div><label>IP na LAN</label><input data-i="${i}" data-f="lan_ip" value="${p.lan_ip || ''}"></div>
+          </div>
+          <label>Navegadores permitidos</label>
+          <input data-i="${i}" data-f="browsers" value="${(p.allowed_browsers||['brave-browser']).join(', ')}">
+          <label>Listas de bloqueio</label>
+          <select data-i="${i}" data-f="block" multiple>${listOptions('block', p.block_lists)}</select>
+          <label>Listas de recomendação</label>
+          <select data-i="${i}" data-f="allow" multiple>${listOptions('allow', p.allow_lists)}</select>
+          <div style="margin-top:10px">
+            <button class="btn small danger" data-rm="${i}">Remover</button>
+          </div>
+        </div>`).join('');
+    }
+
+    function listOptions(kind, selected) {
+      return lists.filter(l => l.kind === kind).map(l =>
+        `<option value="${l.filename}" ${selected.includes(l.filename) ? 'selected' : ''}>${l.filename} (${l.count})</option>`
+      ).join('');
+    }
+
+    function collectProfile(i) {
+      const p = profiles[i];
+      return {
+        name: p.name, linux_user: p.linux_user, lan_ip: p.lan_ip,
+        allowed_browsers: p.allowed_browsers || [],
+        block_lists: p.block_lists || [], allow_lists: p.allow_lists || [], filters: []
+      };
+    }
+
+    $('addProfile').onclick = () => { profiles.push({name:'', linux_user:'', lan_ip:'', allowed_browsers:['brave-browser'], block_lists:[], allow_lists:[]}); renderProfiles(); };
+
+    document.getElementById('profileList').addEventListener('input', e => {
+      const i = e.target.dataset.i; if (i === undefined) return;
+      const f = e.target.dataset.f; if (!f) return;
+      if (f === 'browsers') {
+        profiles[i].allowed_browsers = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
+      } else if (f === 'name' || f === 'linux_user' || f === 'lan_ip') {
+        profiles[i][f] = e.target.value;
+      }
+    });
+
+    document.getElementById('profileList').addEventListener('change', e => {
+      const i = e.target.dataset.i; if (i === undefined) return;
+      const f = e.target.dataset.f;
+      if (f === 'block' || f === 'allow') {
+        profiles[i][f === 'block' ? 'block_lists' : 'allow_lists'] = Array.from(e.target.selectedOptions).map(o => o.value);
+      }
+    });
+
+    document.addEventListener('click', e => {
+      const rm = e.target.dataset.rm;
+      if (rm !== undefined) { profiles.splice(+rm, 1); renderProfiles(); }
+    });
+
+    $('next1').onclick = async () => {
+      err.classList.remove('show');
+      if ($('admin_pass').value !== $('admin_pass2').value) { err.textContent = 'As senhas não coincidem'; err.classList.add('show'); return; }
+      if ($('admin_pass').value.length < 4) { err.textContent = 'Senha muito curta'; err.classList.add('show'); return; }
+      const r = await fetch('/api/setup', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({admin_user: $('admin_user').value, admin_password: $('admin_pass').value, listen_port: parseInt($('port').value)||8123})
+      });
+      if (!r.ok) { const d = await r.json(); err.textContent = d.error; err.classList.add('show'); return; }
+      await loadLists();
+      if (!profiles.length) profiles.push({name:'', linux_user:'', lan_ip:'', allowed_browsers:['brave-browser'], block_lists:[], allow_lists:[]});
+      renderProfiles();
+      show('step2');
+    };
+
+    $('back1').onclick = () => show('step1');
+
+    $('uploadCsv').onclick = async () => {
+      const f = $('csvFile').files[0];
+      if (!f) { $('csvResult').textContent = 'Selecione um arquivo.'; return; }
+      const content = await f.text();
+      const r = await fetch('/api/lists/upload', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({filename: f.name, content})
+      });
+      const d = await r.json();
+      if (r.ok) {
+        $('csvResult').textContent = `Lista "${d.filename}" adicionada (${d.kind}, ${d.count} canais).`;
+        await loadLists(); renderProfiles();
+      } else {
+        $('csvResult').textContent = 'Erro: ' + (d.error || '');
+      }
+    };
+
+    $('finish').onclick = async () => {
+      err.classList.remove('show');
+      for (let i = 0; i < profiles.length; i++) {
+        const p = collectProfile(i);
+        if (!p.name) continue;
+        const r = await fetch('/api/profiles', {
+          method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(p)
+        });
+        if (!r.ok) { const d = await r.json(); err.textContent = 'Erro no perfil ' + p.name + ': ' + (d.error||''); err.classList.add('show'); return; }
+      }
+      show('step3');
+    };
+
+    $('goDash').onclick = () => location.href = '/dashboard';
+
+    (async () => {
+      const st = await (await fetch('/api/setup/status')).json();
+      if (st.setup_done) location.href = '/dashboard';
+      else show('step1');
+    })();
+  </script>
+</body>
+</html>

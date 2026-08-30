@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "GLTD Kid Control",
+  "version": "0.3.0",
+  "description": "Remodela e bloqueia conteúdo no YouTube (controle parental).",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnEKkoJ8bR7zNDqnGYyARwSyxzcmSfP3IkVnRkEHKNm2x+qqqX9LhjqIyS8dHfJ3cfeNRP6int7LoyMXp7GBOqe4TpTmUpURQGNfJ1CuhdzRxht05V4x/YR+qblC02dLUsQdCDTDjWyScn5rwMpcxj6TUC5G2bPV+/egbm++WQPdQfjSvBltkk+TqMszmbzPDvNAtt/xtxJZ2WlgG64g1RBWT5YrbR2oEHaLRySHW5XX41/2IXceaY8BhuPBMRK57Ua5mg8aUZAuVxPYaPMYB0jpzNAAdqsfSYcRlZgb8D75AogfuMyrN1F060TWGEY1Sl4eshKptyPg9z2UquWLGpwIDAQAB",
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "action": {
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    },
+    "default_title": "GLTD Kid Control",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://www.youtube.com/*", "*://m.youtube.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "permissions": ["storage"],
+  "host_permissions": ["http://127.0.0.1:8877/*"]
+}

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Configurações — GLTD Kid Control</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>Configurações</h1>
+    <span class="spacer"></span>
+    <a href="/dashboard">← Painel</a>
+    <button id="logout">Sair</button>
+  </header>
+  <main style="max-width:760px">
+    <div class="alert error" id="err"></div>
+    <div class="alert ok" id="ok"></div>
+
+    <div class="card">
+      <h2>Configurações do sistema e acesso</h2>
+      <p class="muted">Faixa de IP da LAN e credenciais de acesso (SSH/rsync) usadas para
+      sincronizar dados com as máquinas dos clientes.</p>
+      <label>Nome do responsável</label>
+      <input id="admin_name" placeholder="Ex.: Responsavel">
+      <label>Faixa de IP da LAN</label>
+      <input id="lan_ip_range" placeholder="Ex.: 192.168.1.0/24">
+      <div class="grid cols-2">
+        <div>
+          <label>Usuário SSH (acesso aos clientes)</label>
+          <input id="ssh_user" placeholder="Ex.: usuario">
+        </div>
+        <div>
+          <label>Porta SSH</label>
+          <input id="ssh_port" placeholder="22">
+        </div>
+      </div>
+      <label>Caminho da chave SSH privada</label>
+      <input id="ssh_key_path" placeholder="Ex.: /home/usuario/.ssh/id_ed25519">
+      <label>Método de sincronização</label>
+      <select id="sync_method">
+        <option value="rsync">rsync</option>
+        <option value="ssh">ssh</option>
+        <option value="rsync+ssh">rsync + ssh</option>
+      </select>
+      <div style="margin-top:16px">
+        <button class="btn" id="save">Salvar configurações</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Alterar senha do administrador</h2>
+      <label>Senha atual</label>
+      <input id="cur_pass" type="password" autocomplete="current-password">
+      <label>Nova senha</label>
+      <input id="new_pass" type="password" autocomplete="new-password">
+      <label>Confirmar nova senha</label>
+      <input id="new_pass2" type="password" autocomplete="new-password">
+      <div style="margin-top:16px">
+        <button class="btn" id="changePass">Alterar senha</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const err = $('err'), ok = $('ok');
+
+    function showOk(m) { ok.textContent = m; ok.classList.add('show'); setTimeout(()=>ok.classList.remove('show'), 2500); }
+    function showErr(m) { err.textContent = m; err.classList.add('show'); }
+
+    async function load() {
+      const r = await fetch('/api/settings');
+      if (!r.ok) { location.href = '/login'; return; }
+      const s = await r.json();
+      $('admin_name').value = s.admin_name || '';
+      $('lan_ip_range').value = s.lan_ip_range || '';
+      $('ssh_user').value = s.ssh_user || '';
+      $('ssh_port').value = s.ssh_port || '22';
+      $('ssh_key_path').value = s.ssh_key_path || '';
+      $('sync_method').value = s.sync_method || 'rsync';
+    }
+
+    $('save').onclick = async () => {
+      err.classList.remove('show');
+      const body = {
+        admin_name: $('admin_name').value,
+        lan_ip_range: $('lan_ip_range').value,
+        ssh_user: $('ssh_user').value,
+        ssh_port: $('ssh_port').value,
+        ssh_key_path: $('ssh_key_path').value,
+        sync_method: $('sync_method').value
+      };
+      const r = await fetch('/api/settings', {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+      if (r.ok) showOk('Configurações salvas.');
+      else { const d = await r.json(); showErr(d.error || 'erro'); }
+    };
+
+    $('changePass').onclick = async () => {
+      err.classList.remove('show');
+      if ($('new_pass').value !== $('new_pass2').value) { showErr('As novas senhas não coincidem'); return; }
+      const r = await fetch('/api/admin/password', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({current_password: $('cur_pass').value, new_password: $('new_pass').value})
+      });
+      if (r.ok) { showOk('Senha alterada.'); $('cur_pass').value = $('new_pass').value = $('new_pass2').value = ''; }
+      else { const d = await r.json(); showErr(d.error || 'erro'); }
+    };
+
+    $('logout').onclick = async () => { await fetch('/api/logout', {method:'POST'}); location.href = '/login'; };
+
+    (async () => {
+      const st = await (await fetch('/api/setup/status')).json();
+      if (!st.setup_done) { location.href = '/setup'; return; }
+      load();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+[Unit]
+Description=GLTD Kid Control Client (proteção parental)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/gltd-kid-client daemon
+Restart=always
+RestartSec=5
+# roda como root para que a criança não consiga encerrar a proteção
+User=root
+
+[Install]
+WantedBy=multi-user.target

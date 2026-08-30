@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Painel — GLTD Kid Control</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>GLTD Kid Control</h1>
+    <span class="muted" id="who"></span>
+    <span class="spacer"></span>
+    <a href="/settings">Configurações</a>
+    <button id="logout">Sair</button>
+  </header>
+  <main>
+    <div style="display:flex; align-items:center; justify-content:space-between">
+      <h2>Perfis</h2>
+      <button class="btn" id="addBtn">+ Adicionar perfil</button>
+    </div>
+    <div class="alert error" id="err"></div>
+    <div class="grid cols-2" id="profiles"></div>
+  </main>
+
+  <div class="card hidden" id="modal" style="position:fixed; top:10%; left:50%; transform:translateX(-50%); width:480px; max-width:92vw; z-index:10; box-shadow:0 10px 40px rgba(0,0,0,.5)">
+    <h2>Novo perfil</h2>
+    <label>Nome da criança</label><input id="p_name">
+    <label>Usuário Linux</label><input id="p_user">
+    <label>IP na LAN</label><input id="p_ip">
+    <label>Navegadores permitidos (separados por vírgula)</label><input id="p_browsers" value="brave-browser">
+    <label>Listas de bloqueio</label><select id="p_block" multiple></select>
+    <label>Listas de recomendação</label><select id="p_allow" multiple></select>
+    <div style="margin-top:16px; text-align:right">
+      <button class="btn ghost" id="cancelBtn">Cancelar</button>
+      <button class="btn" id="saveBtn">Salvar</button>
+    </div>
+  </div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const err = $('err');
+    let lists = [];
+
+    async function load() {
+      const me = await fetch('/api/me');
+      if (!me.ok) { location.href = '/login'; return; }
+      $('who').textContent = 'olá, ' + (await me.json()).username;
+      const [profs, lfiles] = await Promise.all([
+        fetch('/api/profiles').then(r => r.json()),
+        fetch('/api/lists/files').then(r => r.json())
+      ]);
+      lists = lfiles;
+      const summaries = await Promise.all(profs.map(p => fetch('/api/profiles/' + p.id + '/summary').then(r => r.json())));
+      $('profiles').innerHTML = profs.map((p, i) => {
+        const s = summaries[i] || {};
+        const tot = (s.app_totals || []).slice(0, 3).map(a => `${a.app_name}: ${fmt(a.total_seconds)}`).join(' · ') || 'sem uso';
+        const c = s.client;
+        const online = c && c.active && c.server_ok;
+        const badge = !c
+          ? '<span class="pill">nunca reportou</span>'
+          : (online
+              ? '<span class="pill allow">client ativo</span>'
+              : (c.active
+                  ? '<span class="pill" style="color:var(--warn);border:1px solid var(--warn)">client sem servidor</span>'
+                  : '<span class="pill">client inativo</span>'));
+        const lastSeen = c && c.last_seen ? `<span class="muted"> · ${c.last_seen}</span>` : '';
+        return `<div class="card">
+          <div class="profile-row">
+            <div class="avatar">${(p.name[0]||'?').toUpperCase()}</div>
+            <div><b>${p.name}</b><div class="muted">${p.linux_user || 'sem user'} · ${p.lan_ip || 'sem IP'}</div></div>
+            <span style="flex:1"></span>${badge}
+          </div>
+          <div class="grid cols-2" style="margin-top:14px">
+            <div class="stat-box"><div class="stat">${s.youtube_count ?? 0}</div><div class="muted">vídeos YouTube</div></div>
+            <div class="stat-box"><div class="stat">${s.url_count ?? 0}</div><div class="muted">URLs navegadas</div></div>
+          </div>
+          <div class="muted" style="margin-top:10px">${tot}${lastSeen}</div>
+          <div style="margin-top:12px">
+            <span class="pill block">${(p.block_lists||[]).length} listas block</span>
+            <span class="pill allow">${(p.allow_lists||[]).length} listas allow</span>
+          </div>
+          <div style="margin-top:14px; text-align:right">
+            <button class="btn small ghost" onclick="location.href='/profile?id=${p.id}'">Abrir dashboard</button>
+          </div>
+        </div>`;
+      }).join('') || '<p class="muted">Nenhum perfil criado ainda.</p>';
+    }
+
+    function fmt(s) { s = Math.round(s/60); const h = Math.floor(s/60), m = s%60; return h ? h+'h '+m+'min' : m+'min'; }
+
+    function fillSelect(sel, kind) {
+      sel.innerHTML = lists.filter(l => l.kind === kind).map(l =>
+        `<option value="${l.filename}">${l.filename} (${l.count})</option>`).join('');
+    }
+
+    $('addBtn').onclick = () => { fillSelect($('p_block'),'block'); fillSelect($('p_allow'),'allow'); $('modal').classList.remove('hidden'); };
+    $('cancelBtn').onclick = () => $('modal').classList.add('hidden');
+    $('saveBtn').onclick = async () => {
+      err.classList.remove('show');
+      const body = {
+        name: $('p_name').value, linux_user: $('p_user').value, lan_ip: $('p_ip').value,
+        allowed_browsers: $('p_browsers').value.split(',').map(s=>s.trim()).filter(Boolean),
+        block_lists: Array.from($('p_block').selectedOptions).map(o=>o.value),
+        allow_lists: Array.from($('p_allow').selectedOptions).map(o=>o.value), filters: []
+      };
+      const r = await fetch('/api/profiles', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+      if (r.ok) { $('modal').classList.add('hidden'); load(); }
+      else { const d = await r.json(); err.textContent = d.error || 'erro'; err.classList.add('show'); }
+    };
+
+    $('logout').onclick = async () => { await fetch('/api/logout', {method:'POST'}); location.href = '/login'; };
+
+    (async () => {
+      const st = await (await fetch('/api/setup/status')).json();
+      if (!st.setup_done) { location.href = '/setup'; return; }
+      load();
+    })();
+  </script>
+</body>
+</html>

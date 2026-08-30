@@ -1,0 +1,65 @@
+handle,nome_canal,url,categoria,beneficio,idioma
+@ManualDoMundo,Manual do Mundo,https://www.youtube.com/@ManualDoMundo,ciencia,Experiências científicas práticas e seguras para crianças,portugues
+@SciShowKids,SciShow Kids,https://www.youtube.com/@SciShowKids,ciencia_crianca,Ciência explicada para crianças pequenas,ingles
+@emPoucasPalavras,Em Poucas Palavras,https://www.youtube.com/@emPoucasPalavras,ciencia_espaco,Animações de ciência e espaço,portugues
+@MinutoDaFisica,Minuto da Física,https://www.youtube.com/@MinutoDaFisica,fisica,Física explicada em animações curtas,portugues
+@FisicaTotal,Física Total,https://www.youtube.com/@FisicaTotal,fisica,Aulas de física em português,portugues
+@MinutoDaTerra,Minuto da Terra,https://www.youtube.com/@MinutoDaTerra,ciencia_natureza,Ciência da natureza em animações curtas,portugues
+@CanalDoPirulla,Canal do Pirulla,https://www.youtube.com/@CanalDoPirulla,biologia,Biologia evolução e animais explicados com rigor,portugues
+@BraveWilderness,Brave Wilderness,https://www.youtube.com/@BraveWilderness,animais,Animais e vida selvagem de perto,ingles
+@CrashCourse,Crash Course,https://www.youtube.com/@CrashCourse,biologia_historia,Biologia e história em séries didáticas,ingles
+@ArtForKidsHub,Art for Kids Hub,https://www.youtube.com/@ArtForKidsHub,desenho,Desenho passo a passo para crianças,ingles
+@DrawSoCute,Draw So Cute,https://www.youtube.com/@DrawSoCute,desenho,Desenhos fofos passo a passo,ingles
+@Jazza,Draw with Jazza,https://www.youtube.com/@Jazza,desenho,Arte criatividade e desafios de desenho,ingles
+@Proko,Proko,https://www.youtube.com/@Proko,desenho,Fundamentos de desenho anatomia e perspectiva,ingles
+@OverSimplified,OverSimplified,https://www.youtube.com/@OverSimplified,historia_mundial,História animada e divertida,ingles
+@KingsAndGenerals,Kings and Generals,https://www.youtube.com/@KingsAndGenerals,historia_mundial,Batalhas e história mundial com mapas,ingles
+@CanalNostalgia,Canal Nostalgia,https://www.youtube.com/@CanalNostalgia,historia_brasil,História da cultura internet e games,portugues
+@CounterStrike,Counter-Strike,https://www.youtube.com/@CounterStrike,jogos_fps,Canal oficial do Counter-Strike,ingles
+@Gaules,Gaules,https://www.youtube.com/@Gaules,jogos_fps,Campeonatos e jogos de Counter-Strike,portugues
+@F1,Formula 1,https://www.youtube.com/@F1,jogos_corrida,Corridas e bastidores da Fórmula 1,ingles
+@FormulaE,Formula E,https://www.youtube.com/@FormulaE,jogos_corrida,Corridas de carros elétricos,ingles
+@NeedForSpeed,Need for Speed,https://www.youtube.com/@NeedForSpeed,jogos_corrida,Jogos e conteúdo de corrida,ingles
+@NASCAR,NASCAR,https://www.youtube.com/@NASCAR,jogos_corrida,Corridas de automobilismo,ingles
+@ScratchTeam,Scratch,https://www.youtube.com/@ScratchTeam,programacao_infantil,Programação por blocos ideal para começar,ingles
+@CursoEmVideo,Curso em Vídeo,https://www.youtube.com/@CursoEmVideo,programacao_infantil,Cursos gratuitos de programação em português,portugues
+@GodotEngine,Godot Engine,https://www.youtube.com/@GodotEngine,programacao_jogos,Motor de jogos gratuito que roda no Linux,ingles
+@KidsCanCode,KidsCanCode,https://www.youtube.com/@KidsCanCode,programacao_jogos,Tutoriais de Godot para criar jogos,ingles
+@TwoMinutePapers,Two Minute Papers,https://www.youtube.com/@TwoMinutePapers,ia,Novidades de inteligência artificial explicadas,ingles
+@MattVidPro,MattVidPro,https://www.youtube.com/@MattVidPro,ia,Notícias e testes de ferramentas de IA,ingles
+@JaredOwen,Jared Owen,https://www.youtube.com/@JaredOwen,maquinas_engenharia,Como as máquinas funcionam em 3D,ingles
+@Lesics,Lesics,https://www.youtube.com/@Lesics,maquinas_engenharia,Engenharia e funcionamento de máquinas,ingles
+@RealEngineering,Real Engineering,https://www.youtube.com/@RealEngineering,maquinas_engenharia,Engenharia aplicada em projetos reais,ingles
+@NASA,NASA,https://www.youtube.com/@NASA,espaco,Exploração espacial e missões reais,ingles
+@SpaceX,SpaceX,https://www.youtube.com/@SpaceX,espaco,Foguetes e viagens espaciais,ingles
+@CGTN,CGTN,https://www.youtube.com/@CGTN,china_valores,Televisão estatal chinesa com conteúdo em português,chines_dublado_pt
+@XinhuaNews,Xinhua News,https://www.youtube.com/@XinhuaNews,china_valores,Agência estatal chinesa com notícias e cultura,chines_dublado_pt
+@Veritasium,Veritasium,https://www.youtube.com/@Veritasium,ciencia,Ciência e física com experimentos reais,ingles
+@SmarterEveryDay,Smarter Every Day,https://www.youtube.com/@SmarterEveryDay,engenharia,Engenharia e ciência com câmera lenta,ingles
+@MarkRober,Mark Rober,https://www.youtube.com/@MarkRober,engenharia,Engenharia e invenções criativas,ingles
+@ElectroBOOM,ElectroBOOM,https://www.youtube.com/@ElectroBOOM,engenharia,Eletrônica e eletricidade com humor,ingles
+@SteveMould,Steve Mould,https://www.youtube.com/@SteveMould,ciencia,Fenômenos científicos curiosos,ingles
+@3Blue1Brown,3Blue1Brown,https://www.youtube.com/@3Blue1Brown,matematica,Matemática visual e animada,ingles
+@Numberphile,Numberphile,https://www.youtube.com/@Numberphile,matematica,Curiosidades de matemática e números,ingles
+@minutephysics,MinutePhysics,https://www.youtube.com/@minutephysics,fisica,Física explicada em animações curtas,ingles
+@PhysicsGirl,Physics Girl,https://www.youtube.com/@PhysicsGirl,fisica,Física com experimentos divertidos,ingles
+@Vsauce,Vsauce,https://www.youtube.com/@Vsauce,ciencia,Perguntas científicas e filosóficas,ingles
+@TheActionLab,The Action Lab,https://www.youtube.com/@TheActionLab,ciencia,Experimentos científicos,ingles
+@Kurzgesagt,Kurzgesagt In a Nutshell,https://www.youtube.com/@Kurzgesagt,ciencia_espaco,Animações de ciência e espaço,ingles
+@PeriodicVideos,Periodic Videos,https://www.youtube.com/@PeriodicVideos,quimica,Química dos elementos da tabela periódica,ingles
+@SixtySymbols,Sixty Symbols,https://www.youtube.com/@SixtySymbols,fisica,Conceitos de física explicados por professores,ingles
+@Computerphile,Computerphile,https://www.youtube.com/@Computerphile,computacao,Ciência da computação explicada,ingles
+@CGPgrey,CGP Grey,https://www.youtube.com/@CGPgrey,ciencia,Explicações animadas de como o mundo funciona,ingles
+@TomScott,Tom Scott,https://www.youtube.com/@TomScott,ciencia,Lugares e ciência interessantes,ingles
+@AsapSCIENCE,AsapSCIENCE,https://www.youtube.com/@AsapSCIENCE,ciencia,Ciência em animações rápidas,ingles
+@NaukaToLubie,Nauka. To Lubię,https://www.youtube.com/@NaukaToLubie,ciencia,Ciência e tecnologia explicadas para o público geral,polones
+@SciFun,SciFun,https://www.youtube.com/@SciFun,ciencia,Ciência popular com experimentos e curiosidades,polones
+@UwagaNaukowyBelkot,Uwaga! Naukowy Bełkot,https://www.youtube.com/@UwagaNaukowyBelkot,ciencia,Popularização científica com rigor,polones
+@Astrofaza,Astrofaza,https://www.youtube.com/@Astrofaza,espaco,Astronomia e exploração espacial,polones
+@EmceKwadrat,Emce Kwadrat,https://www.youtube.com/@EmceKwadrat,matematica,Matemática explicada de forma clara,polones
+@CienciaTodoDia,Ciência Todo Dia,https://www.youtube.com/@CienciaTodoDia,ciencia,Ciência e tecnologia em linguagem acessível,portugues_brasil
+@Blablalogia,BláBláLogia,https://www.youtube.com/@Blablalogia,ciencia,Curiosidades científicas e biologia,portugues_brasil
+@PrimataFalante,Primata Falante,https://www.youtube.com/@PrimataFalante,biologia,Biologia evolução e comportamento animal,portugues_brasil
+@Nerdologia,Nerdologia,https://www.youtube.com/@Nerdologia,ciencia_historia,Ciência e história em vídeos curtos e didáticos,portugues_brasil
+@AstroPT,AstroPT,https://www.youtube.com/@AstroPT,espaco,Astronomia e divulgação científica de Portugal,portugues_portugal
+@CienciaViva,Ciência Viva,https://www.youtube.com/@CienciaViva,ciencia,Divulgação científica da agência portuguesa,portugues_portugal

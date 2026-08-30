@@ -1,0 +1,29 @@
+#!/bin/bash
+# Pós-instalação do gltd-kid-control-client
+set -euo pipefail
+
+mkdir -p /etc/gltd-kid-control /run/gltd-kid-control
+chmod 755 /run/gltd-kid-control
+
+# instala e ativa o serviço do daemon (roda como root)
+cp /usr/share/gltd-kid-control/gltd-kid-client.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable gltd-kid-client.service >/dev/null 2>&1 || true
+systemctl restart gltd-kid-client.service >/dev/null 2>&1 || true
+
+# extensão do Brave (força instalação via "external extensions")
+EXT_ID="dcblbbijaffdedcldmakjjlpookliegj"
+if [ -f /usr/share/gltd-kid-control/extension/gltd.crx ]; then
+  mkdir -p /opt/brave.com/brave/extensions
+  cat > "/opt/brave.com/brave/extensions/${EXT_ID}.json" <<EOF
+{
+  "external_crx": "/usr/share/gltd-kid-control/extension/gltd.crx",
+  "external_version": "0.1.0"
+}
+EOF
+fi
+
+echo ""
+echo "GLTD Kid Control Client instalado."
+echo "Configure agora com:  sudo gltd-kid-client setup"
+echo ""

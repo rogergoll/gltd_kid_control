@@ -1,0 +1,15 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=GLTD Kid Control
+Name[pt_BR]=GLTD Kid Control
+GenericName=Controle Parental
+GenericName[pt_BR]=Controle Parental
+Comment=Painel de controle parental (perfis, listas e histórico)
+Comment[pt_BR]=Painel de controle parental (perfis, listas e histórico)
+Exec=/var/PROGRAMAS/gltd_kid_control/server/scripts/start_admin.sh
+Icon=/var/PROGRAMAS/gltd_kid_control/icons/gltd-kid-control.png
+Terminal=false
+Categories=Network;Utility;Education;
+Keywords=parental;kids;controle;youtube;criancas;
+StartupNotify=true

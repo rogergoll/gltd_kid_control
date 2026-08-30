@@ -1,0 +1,34 @@
+handle,nome_canal,url,categoria,beneficio,idioma
+@ManualDoMundo,Manual do Mundo,https://www.youtube.com/@ManualDoMundo,ciencia,Experiências científicas práticas e seguras para crianças,portugues
+@Nerdologia,Nerdologia,https://www.youtube.com/@Nerdologia,ciencia_historia,Ciência e história em vídeos curtos e didáticos,portugues
+@CanalDoPirulla,Canal do Pirulla,https://www.youtube.com/@CanalDoPirulla,animais_biologia,Biologia evolução e animais explicados com rigor,portugues
+@ScratchTeam,Scratch,https://www.youtube.com/@ScratchTeam,programacao_infantil,Programação por blocos ideal para começar roda no Linux,ingles
+@CursoEmVideo,Curso em Vídeo,https://www.youtube.com/@CursoEmVideo,programacao_infantil,Cursos gratuitos de programação em português,portugues
+@GodotEngine,Godot Engine,https://www.youtube.com/@GodotEngine,programacao_infantil,Motor de jogos gratuito e leve que roda no Linux,ingles
+@KidsCanCode,KidsCanCode,https://www.youtube.com/@KidsCanCode,programacao_infantil,Tutoriais de Godot para criar jogos,ingles
+@BlenderGuru,Blender Guru,https://www.youtube.com/@BlenderGuru,blender,Tutoriais de Blender 3D do básico ao avançado,ingles
+@GrantAbbitt,Grant Abbitt,https://www.youtube.com/@GrantAbbitt,blender,Blender para iniciantes passo a passo,ingles
+@CGGeek,CG Geek,https://www.youtube.com/@CGGeek,blender,Tutoriais de modelagem 3D no Blender,ingles
+@Ducky3D,Ducky 3D,https://www.youtube.com/@Ducky3D,blender,Cenas rápidas e criativas no Blender,ingles
+@LogosByNick,Logos By Nick,https://www.youtube.com/@LogosByNick,inkscape_gimp,Tutoriais de Inkscape e GIMP,ingles
+@DaviesMediaDesign,Davies Media Design,https://www.youtube.com/@DaviesMediaDesign,inkscape_gimp,GIMP e Inkscape para iniciantes,ingles
+@DavidRevoy,David Revoy,https://www.youtube.com/@DavidRevoy,krita,Arte digital no Krita usando Linux,ingles
+@Proko,Proko,https://www.youtube.com/@Proko,desenho,Fundamentos de desenho anatomia e perspectiva,ingles
+@Jazza,Draw with Jazza,https://www.youtube.com/@Jazza,desenho,Arte criatividade e desafios de desenho,ingles
+@Panelinha,Panelinha,https://www.youtube.com/@Panelinha,cozinha,Receitas saudáveis e comida de verdade com Rita Lobo,portugues
+@PresuntoVegetariano,Presunto Vegetariano,https://www.youtube.com/@PresuntoVegetariano,cozinha,Cozinha vegetariana saudável e acessível,portugues
+@CasaDoSaber,Casa do Saber,https://www.youtube.com/@CasaDoSaber,filosofia,Aulas de filosofia e humanidades com professores,portugues
+@NovaAcropole,Nova Acrópole,https://www.youtube.com/@NovaAcropole,filosofia_valores,Filosofia prática valores e formação de caráter,portugues
+@OverSimplified,OverSimplified,https://www.youtube.com/@OverSimplified,historia_mundial,História animada e divertida sem viés político,ingles
+@KingsAndGenerals,Kings and Generals,https://www.youtube.com/@KingsAndGenerals,historia_mundial,Batalhas e história mundial com mapas,ingles
+@HistoriaCivilis,Historia Civilis,https://www.youtube.com/@HistoriaCivilis,historia_mundial,História antiga com rigor acadêmico,ingles
+@CrashCourse,Crash Course,https://www.youtube.com/@CrashCourse,historia_mundial,História e ciência em séries didáticas,ingles
+@CanalNostalgia,Canal Nostalgia,https://www.youtube.com/@CanalNostalgia,historia_brasil,História da cultura internet e games,portugues
+@emPoucasPalavras,Em Poucas Palavras,https://www.youtube.com/@emPoucasPalavras,ciencia_animada,Animações de ciência e espaço para a mente pré-adolescente,portugues
+@TEDEd,TED-Ed,https://www.youtube.com/@TEDEd,animacao_educativa,Animações educativas sobre história ciência e sociedade,ingles
+@MinutoDaTerra,Minuto da Terra,https://www.youtube.com/@MinutoDaTerra,ciencia_animada,Ciência da natureza em animações curtas,portugues
+@MinutoDaFisica,Minuto da Física,https://www.youtube.com/@MinutoDaFisica,ciencia_animada,Física explicada em animações curtas,portugues
+@QuadroEmBranco,Quadro em Branco,https://www.youtube.com/@QuadroEmBranco,arte_historia,Ensaios sobre arte e história em linguagem acessível,portugues
+@OshowdaLuna,O Show da Luna,https://www.youtube.com/@OshowdaLuna,animacao_ciencia,Ciência em forma de animação infantil,portugues
+@QuintalDaCultura,Quintal da Cultura,https://www.youtube.com/@QuintalDaCultura,animacao_valores,Programa infantil educativo com valores e cultura,portugues
+@TurmaDaMonica,Turma da Mônica,https://www.youtube.com/@TurmaDaMonica,animacao_historias,Histórias clássicas em desenho animado,portugues

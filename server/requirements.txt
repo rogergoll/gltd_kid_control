@@ -1,0 +1,15 @@
+# GLTD Kid Control Server — runtime usa Python 3.10+.
+#
+# Backend de dados:
+#   - MariaDB (padrão recomendado): usa o driver PyMySQL.
+#     Pacotes de sistema:  mariadb-server, mariadb-client, python3-pymysql
+#   - JSON (fallback, sem MariaDB): usa apenas stdlib.
+#
+# Pacotes de sistema (Debian/Ubuntu/Linux Mint):
+#   python3
+#   mariadb-server
+#   mariadb-client
+#   python3-pymysql        # driver Python do MariaDB/MySQL
+#
+# (futuro) se o DNS local for implementado:
+#   dnsmasq        -> sudo apt install dnsmasq
