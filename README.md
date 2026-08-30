@@ -91,7 +91,7 @@ Também fico grato se divulgar esta aplicação. Meu X: [@rogergoll](https://x.c
 - **XMR (Monero):**
   `88oYWeR7ZEVXUnAuZRXbYaWwowtcq6jZoMkNpC9VNukd1MMoZmoCFodgcyVU6GuUjdGhf5R5G45ZNh9wV8jdyFPJ1APiVAG`
 - **Dogecoin:** `DMUuoV6tvBfXyYbMpRjSM6pstuYFuC7Jfb`
-- **Bitcoin:** `DMUuoV6tvBfXyYbMpRjSM6pstuYFuC7Jfb`
+- **Bitcoin:** `bc1q4lftxmqth33htrgjg3s4f5dzjr2d7gdw76wn4n`
 - **Pix (Brasil):** `1f57a276-dc0e-44a0-a4e0-4a2349833958`
 
 ## Licença
