@@ -32,6 +32,8 @@ class Profile:
     allow_lists: list[str] = field(default_factory=list)
     filters: list[str] = field(default_factory=list)  # expressões/frases de bloqueio
     client_token: str = ""  # token de autenticação do client (máquina da criança)
+    daily_limit_minutes: int = 0      # tempo diário total (0 = sem limite)
+    youtube_limit_minutes: int = 0    # tempo diário do YouTube (0 = sem limite)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

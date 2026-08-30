@@ -202,7 +202,8 @@ handle,nome_canal,url,categoria,beneficio,idioma
   (`info` = motivo_bloqueio **ou** beneficio; `extra` = nivel_risco **ou**
   idioma; `extra2` = alternativa_saudavel, só em block.)
 - `Profile`: `id, name, lan_ip, linux_user, allowed_browsers, block_lists,
-  allow_lists, filters, client_token`.
+  allow_lists, filters, client_token, daily_limit_minutes,
+  youtube_limit_minutes` (limites de tempo em minutos; `0` = sem limite).
 - `HistoryEntry`: `id, profile_id, channel_handle, channel_name, video_title,
   video_url, thumb_url, description, watched_at`.
 
@@ -234,12 +235,16 @@ com exceção das rotas públicas (`/api/health`, `/api/setup/status`, `/api/set
 | GET | `/api/profiles/{id}/usage` | uso de apps |
 | GET | `/api/profiles/{id}/urls` | urls navegadas |
 | GET | `/api/profiles/{id}/youtube` | histórico do YouTube |
+| GET | `/api/profiles/{id}/blocks` | canais/vídeos/urls bloqueados (com `file` de origem) |
 | POST | `/api/profiles` | cria perfil |
-| PUT | `/api/profiles/{id}` | atualiza perfil |
+| PUT | `/api/profiles/{id}` | atualiza perfil (inclusive `daily_limit_minutes`/`youtube_limit_minutes`) |
 | DELETE | `/api/profiles/{id}` | remove perfil |
 | POST | `/api/profiles/{id}/block-{channel\|video\|url\|domain}` | bloqueio manual |
+| POST | `/api/profiles/{id}/unblock` | remove uma entrada de uma lista de bloqueio |
 | GET | `/api/lists` | resumo das listas |
 | GET | `/api/lists/files` | arquivos de lista |
+| GET | `/api/lists/file/{filename}` | conteúdo bruto de uma lista |
+| PUT | `/api/lists/file/{filename}` | salva o conteúdo CSV de uma lista |
 | POST | `/api/lists/upload` | sobe/valida um CSV |
 | GET | `/api/history?profile=&limit=` | histórico |
 | POST | `/api/history` | adiciona histórico |

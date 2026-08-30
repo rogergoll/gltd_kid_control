@@ -75,6 +75,8 @@ label { display: block; font-size: 13px; color: var(--muted); margin: 12px 0 4px
 .tabs button.active { color: var(--text); border-bottom-color: var(--accent); }
 .tabpanel { display: none; }
 .tabpanel.active { display: block; }
+.ytpanel { display: none; }
+.ytpanel.active { display: block; }
 .thumb { width: 60px; border-radius: 6px; }
 .avatar {
   width: 48px; height: 48px; border-radius: 50%; background: var(--accent2);

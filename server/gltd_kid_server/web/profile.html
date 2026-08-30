@@ -24,6 +24,7 @@
     <div class="alert error" id="err"></div>
     <div class="alert ok" id="ok"></div>
 
+    <!-- ===================== CONFIG ===================== -->
     <div id="config" class="tabpanel active">
       <div class="card">
         <h2>Dados do perfil</h2>
@@ -40,10 +41,25 @@
         </div>
         <label>Listas de bloqueio</label><select id="f_block" multiple></select>
         <label>Listas de recomendação</label><select id="f_allow" multiple></select>
-        <div style="margin-top:16px">
-          <button class="btn" id="saveProfile">Salvar alterações</button>
-        </div>
       </div>
+
+      <div class="card">
+        <h2>Limites de tempo</h2>
+        <p class="muted" id="usageToday"></p>
+        <div class="grid cols-2">
+          <div>
+            <label>Tempo diário total (minutos — 0 = sem limite)</label>
+            <input id="f_daily" type="number" min="0" step="5">
+          </div>
+          <div>
+            <label>Tempo diário de YouTube (minutos — 0 = sem limite)</label>
+            <input id="f_yt_limit" type="number" min="0" step="5">
+          </div>
+        </div>
+        <p class="muted">Os limites são aplicados pelo client na máquina da criança.
+        O tempo de hoje considera o uso de aplicativos reportado pelo client.</p>
+      </div>
+
       <div class="card">
         <h2>Filtros de expressões</h2>
         <div id="filters" style="margin-bottom:12px"></div>
@@ -52,6 +68,7 @@
           <button class="btn" id="addFilter">Adicionar filtro</button>
         </div>
       </div>
+
       <div class="card">
         <h2>Bloquear canal no YouTube</h2>
         <p class="muted">Adicione um canal (handle ou URL) para bloquear. Vale para este perfil.</p>
@@ -60,16 +77,66 @@
           <button class="btn" id="addChannel" style="white-space:nowrap">Bloquear canal</button>
         </div>
       </div>
-    </div>
 
-    <div id="youtube" class="tabpanel">
-      <div class="card" style="display:flex; gap:8px">
-        <input id="ytSearch" placeholder="Pesquisar vídeos (título, canal ou descrição)...">
-        <button class="btn ghost" id="ytClear" style="white-space:nowrap">Limpar</button>
+      <div class="card">
+        <h2>Gerenciar listas de bloqueio</h2>
+        <p class="muted">Visualize e edite o conteúdo de uma lista de bloqueio (CSV) e salve as
+        alterações. As listas afetam todos os perfis que as usam.</p>
+        <label>Lista</label>
+        <select id="listSel"></select>
+        <label>Nome do arquivo</label>
+        <input id="listName" placeholder="Ex.: block_manual.csv">
+        <label>Conteúdo (CSV)</label>
+        <textarea id="listContent" rows="12" style="font-family:ui-monospace,monospace; font-size:12px"></textarea>
+        <div style="margin-top:12px; display:flex; gap:8px">
+          <button class="btn ghost" id="listLoad">Carregar lista</button>
+          <button class="btn" id="listSave">Salvar lista</button>
+        </div>
       </div>
-      <div class="card"><table><thead><tr><th></th><th>Título</th><th>Canal</th><th>Descrição</th><th>Quando</th></tr></thead><tbody id="ytBody"></tbody></table></div>
+
+      <div class="card">
+        <button class="btn" id="saveProfile">Salvar alterações</button>
+      </div>
     </div>
 
+    <!-- ===================== YOUTUBE ===================== -->
+    <div id="youtube" class="tabpanel">
+      <div class="tabs" style="margin-bottom:14px">
+        <button data-yt="history" class="active">Histórico</button>
+        <button data-yt="channels">Canais bloqueados</button>
+        <button data-yt="videos">Vídeos bloqueados</button>
+      </div>
+
+      <div id="yt-history" class="ytpanel active">
+        <div class="card" style="display:flex; gap:8px">
+          <input id="ytSearch" placeholder="Pesquisar vídeos (título, canal ou descrição)...">
+          <button class="btn ghost" id="ytClear" style="white-space:nowrap">Limpar</button>
+        </div>
+        <div class="card"><table><thead><tr><th></th><th>Título</th><th>Canal</th><th>Descrição</th><th>Quando</th></tr></thead><tbody id="ytBody"></tbody></table></div>
+      </div>
+
+      <div id="yt-channels" class="ytpanel">
+        <div class="card">
+          <div style="display:flex; align-items:center; justify-content:space-between">
+            <h2 style="margin:0">Canais bloqueados</h2>
+            <span class="muted" id="ytChanCount"></span>
+          </div>
+          <div id="ytChanBody"></div>
+        </div>
+      </div>
+
+      <div id="yt-videos" class="ytpanel">
+        <div class="card">
+          <div style="display:flex; align-items:center; justify-content:space-between">
+            <h2 style="margin:0">Vídeos bloqueados</h2>
+            <span class="muted" id="ytVidCount"></span>
+          </div>
+          <div id="ytVidBody"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== APPS ===================== -->
     <div id="apps" class="tabpanel">
       <div class="card">
         <h2>Tempo por aplicativo</h2>
@@ -78,6 +145,7 @@
       <div class="card"><table><thead><tr><th>Aplicativo</th><th>Duração</th><th>Início</th></tr></thead><tbody id="appBody"></tbody></table></div>
     </div>
 
+    <!-- ===================== URLS ===================== -->
     <div id="urls" class="tabpanel">
       <div class="card" style="display:flex; gap:8px">
         <input id="urlSearch" placeholder="Pesquisar URLs (endereço ou título)...">
@@ -91,20 +159,21 @@
     const $ = id => document.getElementById(id);
     const params = new URLSearchParams(location.search);
     const PID = params.get('id');
-    let profile = null, lists = [];
+    let profile = null, lists = [], blocks = { channels: [], videos: [], urls: [] };
 
     function esc(s) { return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
     function fmt(s) { s = Math.round(s/60); const h = Math.floor(s/60), m = s%60; return h ? h+'h '+m+'min' : m+'min'; }
+    function showOk(m) { const o = $('ok'); o.textContent = m; o.classList.add('show'); setTimeout(()=>o.classList.remove('show'), 2500); }
+    function showErr(m) { $('err').textContent = m; $('err').classList.add('show'); setTimeout(()=>$('err').classList.remove('show'), 4000); }
 
-    async function blockAction(kind, body) {
-      const r = await fetch('/api/profiles/' + PID + '/block-' + kind, {
-        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)
-      });
-      const d = await r.json();
-      if (d.ok) showOk('Bloqueado (' + kind + '): ' + (d.handle || body.url || ''));
-      else { $('err').textContent = d.error || 'erro'; $('err').classList.add('show'); }
+    async function api(path, opts) {
+      const r = await fetch(path, opts);
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d.error || ('erro ' + r.status));
+      return d;
     }
 
+    // ---------- perfil ----------
     async function loadProfile() {
       const r = await fetch('/api/profiles/' + PID);
       if (!r.ok) { location.href = '/dashboard'; return; }
@@ -115,35 +184,53 @@
       $('f_ip').value = profile.lan_ip || '';
       $('f_browsers').value = (profile.allowed_browsers || []).join(', ');
       $('f_token').value = profile.client_token || '(sem token)';
+      $('f_daily').value = profile.daily_limit_minutes || 0;
+      $('f_yt_limit').value = profile.youtube_limit_minutes || 0;
       lists = await (await fetch('/api/lists/files')).json();
       fillSelect($('f_block'), 'block', profile.block_lists || []);
       fillSelect($('f_allow'), 'allow', profile.allow_lists || []);
+      fillListSel();
       renderFilters();
+      loadSummary();
+    }
+
+    async function loadSummary() {
+      try {
+        const s = await api('/api/profiles/' + PID + '/summary');
+        const secs = s.today_usage_seconds || 0;
+        const daily = profile.daily_limit_minutes || 0;
+        const txt = 'Uso de hoje: ' + fmt(secs) + (daily ? (' de ' + daily + ' min') : ' (sem limite diário)');
+        $('usageToday').textContent = txt;
+      } catch (e) {}
     }
 
     function fillSelect(sel, kind, selected) {
       sel.innerHTML = lists.filter(l => l.kind === kind).map(l =>
-        `<option value="${l.filename}" ${selected.includes(l.filename) ? 'selected' : ''}>${l.filename} (${l.count})</option>`).join('');
+        `<option value="${esc(l.filename)}" ${selected.includes(l.filename) ? 'selected' : ''}>${esc(l.filename)} (${l.count})</option>`).join('');
+    }
+
+    function fillListSel() {
+      const blockFiles = lists.filter(l => l.kind === 'block');
+      $('listSel').innerHTML =
+        `<option value="">— escolher —</option>` +
+        blockFiles.map(l => `<option value="${esc(l.filename)}">${esc(l.filename)} (${l.count})</option>`).join('');
     }
 
     function renderFilters() {
       const el = $('filters');
       el.innerHTML = (profile.filters || []).map((f, i) =>
-        `<span class="pill" style="margin-right:6px">${f} <a href="#" data-fx="${i}" style="color:var(--bad); text-decoration:none">✕</a></span>`).join('') || '<span class="muted">nenhum filtro</span>';
+        `<span class="pill" style="margin-right:6px">${esc(f)} <a href="#" data-fx="${i}" style="color:var(--bad); text-decoration:none">✕</a></span>`).join('') || '<span class="muted">nenhum filtro</span>';
     }
 
-    $('copyToken').onclick = () => {
-      const t = $('f_token');
-      t.select();
-      document.execCommand('copy');
-      showOk('Token copiado.');
-    };
+    $('copyToken').onclick = () => { const t = $('f_token'); t.select(); document.execCommand('copy'); showOk('Token copiado.'); };
 
-    $('addFilter').onclick = async () => {      const v = $('newFilter').value.trim();
+    $('addFilter').onclick = async () => {
+      const v = $('newFilter').value.trim();
       if (!v) return;
-      const r = await fetch('/api/filters', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({profile_id: PID, expression: v})});
-      const d = await r.json();
-      if (d.ok) { profile.filters = d.filters; $('newFilter').value = ''; renderFilters(); }
+      try {
+        const d = await api('/api/filters', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({profile_id: PID, expression: v})});
+        if (d.ok) { profile.filters = d.filters; $('newFilter').value = ''; renderFilters(); }
+      } catch (e) { showErr(e.message); }
     };
 
     document.addEventListener('click', async e => {
@@ -160,19 +247,53 @@
         name: $('f_name').value, linux_user: $('f_user').value, lan_ip: $('f_ip').value,
         allowed_browsers: $('f_browsers').value.split(',').map(s=>s.trim()).filter(Boolean),
         block_lists: Array.from($('f_block').selectedOptions).map(o=>o.value),
-        allow_lists: Array.from($('f_allow').selectedOptions).map(o=>o.value)
+        allow_lists: Array.from($('f_allow').selectedOptions).map(o=>o.value),
+        daily_limit_minutes: parseInt($('f_daily').value || '0'),
+        youtube_limit_minutes: parseInt($('f_yt_limit').value || '0')
       };
-      const r = await fetch('/api/profiles/' + PID, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
-      if (r.ok) { showOk('Salvo.'); loadProfile(); }
-      else { const d = await r.json(); $('err').textContent = d.error || 'erro'; $('err').classList.add('show'); }
+      try {
+        await api('/api/profiles/' + PID, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+        showOk('Salvo.'); loadProfile();
+      } catch (e) { showErr(e.message); }
     };
 
-    function showOk(m) { const o = $('ok'); o.textContent = m; o.classList.add('show'); setTimeout(()=>o.classList.remove('show'), 2500); }
+    // ---------- gerenciar listas ----------
+    $('listSel').onchange = () => { if ($('listSel').value) { $('listName').value = $('listSel').value; loadListFile(); } };
 
+    async function loadListFile() {
+      const name = ($('listName').value || '').trim();
+      if (!name) { showErr('Informe o nome do arquivo.'); return; }
+      try {
+        const d = await api('/api/lists/file/' + encodeURIComponent(name));
+        $('listName').value = d.filename;
+        $('listContent').value = d.content;
+        showOk('Lista carregada (' + d.kind + ', ' + d.count + ' itens).');
+      } catch (e) {
+        $('listContent').value = '';
+        showErr(e.message);
+      }
+    }
+    $('listLoad').onclick = loadListFile;
+
+    $('listSave').onclick = async () => {
+      const name = ($('listName').value || '').trim();
+      if (!name) { showErr('Informe o nome do arquivo.'); return; }
+      try {
+        const d = await api('/api/lists/file/' + encodeURIComponent(name), {
+          method:'PUT', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({content: $('listContent').value})
+        });
+        showOk('Lista salva: ' + d.filename + ' (' + d.count + ' itens).');
+        lists = await (await fetch('/api/lists/files')).json();
+        fillListSel(); fillSelect($('f_block'), 'block', profile.block_lists || []);
+        loadBlocks();
+      } catch (e) { showErr(e.message); }
+    };
+
+    // ---------- YouTube: histórico ----------
     let ytData = [];
     async function loadYouTube() {
-      const r = await fetch('/api/profiles/' + PID + '/youtube');
-      ytData = await r.json();
+      ytData = await (await fetch('/api/profiles/' + PID + '/youtube')).json();
       renderYouTube();
     }
     function renderYouTube() {
@@ -200,38 +321,111 @@
     $('ytSearch').oninput = renderYouTube;
     $('ytClear').onclick = () => { $('ytSearch').value = ''; renderYouTube(); };
 
-    $('addChannel').onclick = async () => {
-      const h = $('blockHandle').value.trim();
-      if (!h) return;
-      const r = await fetch('/api/profiles/' + PID + '/block-channel', {
-        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({handle:h})
-      });
-      const d = await r.json();
-      if (d.ok) { showOk('Canal bloqueado: ' + d.handle + (d.already ? ' (já estava)' : '')); $('blockHandle').value=''; loadProfile(); }
-      else { $('err').textContent = d.error || 'erro'; $('err').classList.add('show'); }
-    };
+    // ---------- YouTube: bloqueados ----------
+    async function loadBlocks() {
+      blocks = await (await fetch('/api/profiles/' + PID + '/blocks')).json();
+      renderBlocks();
+    }
+    function renderBlocks() {
+      const chans = blocks.channels || [];
+      const vids = blocks.videos || [];
+      $('ytChanCount').textContent = chans.length + ' itens';
+      $('ytChanBody').innerHTML = chans.map(c => {
+        const handle = c.handle || '';
+        const url = c.url || '';
+        return `<div style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border)">
+          <div style="flex:1">
+            <b>${esc(c.nome_canal || handle)}</b>
+            <div class="muted mono">${esc(handle)} ${url && url !== 'https://www.youtube.com/'+handle ? '· ' + esc(url) : ''}</div>
+            ${c.info ? `<div class="muted">${esc(c.info)}</div>` : ''}
+            <span class="pill block">${esc(c.categoria || 'canal')}</span>
+          </div>
+          <button class="btn small ghost" data-unblock data-file="${esc(c.file)}" data-handle="${esc(handle)}">Desbloquear</button>
+        </div>`;
+      }).join('') || '<p class="muted">Nenhum canal bloqueado.</p>';
 
-    document.addEventListener('click', e => {
-      if (e.target.dataset.blockVideo) {
-        blockAction('video', { url: e.target.dataset.blockVideo, name: e.target.dataset.title || '' });
+      $('ytVidCount').textContent = vids.length + ' itens';
+      $('ytVidBody').innerHTML = vids.map(v => {
+        return `<div style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border)">
+          <div style="flex:1">
+            <b>${esc(v.nome_canal || v.handle || 'Vídeo')}</b>
+            <div class="muted mono"><a href="${esc(v.url)}" target="_blank" style="color:var(--muted)">${esc(v.url)}</a></div>
+            ${v.info ? `<div class="muted">${esc(v.info)}</div>` : ''}
+          </div>
+          <button class="btn small ghost" data-unblock data-file="${esc(v.file)}" data-url="${esc(v.url)}">Desbloquear</button>
+        </div>`;
+      }).join('') || '<p class="muted">Nenhum vídeo bloqueado.</p>';
+    }
+
+    // ---------- ações de bloqueio / desbloqueio ----------
+    document.addEventListener('click', async e => {
+      if (e.target.dataset.unblock !== undefined) {
+        const file = e.target.dataset.file, handle = e.target.dataset.handle, url = e.target.dataset.url;
+        if (!confirm('Desbloquear este item?')) return;
+        try {
+          await api('/api/profiles/' + PID + '/unblock', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({file, handle: handle || '', url: url || ''})
+          });
+          showOk('Desbloqueado.'); loadBlocks(); loadProfile();
+        } catch (ex) { showErr(ex.message); }
+      } else if (e.target.dataset.blockVideo) {
+        try {
+          await api('/api/profiles/' + PID + '/block-video', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({url: e.target.dataset.blockVideo, name: e.target.dataset.title || ''})
+          });
+          showOk('Vídeo bloqueado.'); loadBlocks();
+        } catch (ex) { showErr(ex.message); }
       } else if (e.target.dataset.blockChannel) {
-        blockAction('channel', { handle: e.target.dataset.blockChannel });
+        try {
+          await api('/api/profiles/' + PID + '/block-channel', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({handle: e.target.dataset.blockChannel})
+          });
+          showOk('Canal bloqueado.'); loadBlocks(); loadProfile();
+        } catch (ex) { showErr(ex.message); }
       } else if (e.target.dataset.blockUrl) {
-        blockAction('url', { url: e.target.dataset.blockUrl });
+        try {
+          await api('/api/profiles/' + PID + '/block-url', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({url: e.target.dataset.blockUrl})
+          });
+          showOk('URL bloqueada.'); loadBlocks();
+        } catch (ex) { showErr(ex.message); }
       } else if (e.target.dataset.blockDomain) {
-        blockAction('domain', { url: e.target.dataset.blockDomain });
+        try {
+          await api('/api/profiles/' + PID + '/block-domain', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({url: e.target.dataset.blockDomain})
+          });
+          showOk('Domínio bloqueado.'); loadBlocks();
+        } catch (ex) { showErr(ex.message); }
       }
     });
 
+    $('addChannel').onclick = async () => {
+      const h = $('blockHandle').value.trim();
+      if (!h) return;
+      try {
+        const d = await api('/api/profiles/' + PID + '/block-channel', {
+          method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({handle:h})
+        });
+        showOk('Canal bloqueado: ' + d.handle + (d.already ? ' (já estava)' : ''));
+        $('blockHandle').value = ''; loadProfile(); loadBlocks();
+      } catch (e) { showErr(e.message); }
+    };
+
+    // ---------- Apps / URLs ----------
     async function loadApps() {
       const d = await (await fetch('/api/profiles/' + PID + '/usage')).json();
       const totals = d.totals || [];
       const max = Math.max(...totals.map(t => t.total_seconds), 1);
       $('appTotals').innerHTML = totals.map(t =>
-        `<div style="margin-bottom:12px"><div style="display:flex; justify-content:space-between"><b>${t.app_name}</b><span class="muted">${fmt(t.total_seconds)} · ${t.sessions} sessões</span></div>
+        `<div style="margin-bottom:12px"><div style="display:flex; justify-content:space-between"><b>${esc(t.app_name)}</b><span class="muted">${fmt(t.total_seconds)} · ${t.sessions} sessões</span></div>
          <div class="bar"><span style="width:${Math.round(t.total_seconds/max*100)}%"></span></div></div>`).join('') || '<p class="muted">Sem dados de uso.</p>';
       $('appBody').innerHTML = (d.entries || []).map(a =>
-        `<tr><td>${a.app_name}</td><td>${fmt(a.duration_seconds)}</td><td class="muted">${a.started_at}</td></tr>`).join('') || '<tr><td colspan="3" class="muted">Sem registros.</td></tr>';
+        `<tr><td>${esc(a.app_name)}</td><td>${fmt(a.duration_seconds)}</td><td class="muted">${esc(a.started_at)}</td></tr>`).join('') || '<tr><td colspan="3" class="muted">Sem registros.</td></tr>';
     }
 
     let urlData = [];
@@ -260,12 +454,20 @@
     $('urlSearch').oninput = renderUrls;
     $('urlClear').onclick = () => { $('urlSearch').value = ''; renderUrls(); };
 
-    const loaders = { config: ()=>0, youtube: loadYouTube, apps: loadApps, urls: loadUrls };
-    document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
-      document.querySelectorAll('.tabs button').forEach(x => x.classList.remove('active'));
+    // ---------- abas ----------
+    const loaders = { config: ()=>0, youtube: ()=>{ loadYouTube(); loadBlocks(); }, apps: loadApps, urls: loadUrls };
+    document.querySelectorAll('.tabs button[data-tab]').forEach(b => b.onclick = () => {
+      document.querySelectorAll('.tabs button[data-tab]').forEach(x => x.classList.remove('active'));
       document.querySelectorAll('.tabpanel').forEach(x => x.classList.remove('active'));
       b.classList.add('active'); $(b.dataset.tab).classList.add('active');
       loaders[b.dataset.tab]();
+    });
+
+    // sub-abas do YouTube
+    document.querySelectorAll('#youtube .tabs button[data-yt]').forEach(b => b.onclick = () => {
+      document.querySelectorAll('#youtube .tabs button[data-yt]').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('.ytpanel').forEach(x => x.classList.remove('active'));
+      b.classList.add('active'); $('yt-' + b.dataset.yt).classList.add('active');
     });
 
     $('logout').onclick = async () => { await fetch('/api/logout', {method:'POST'}); location.href = '/login'; };
@@ -277,6 +479,7 @@
       if (!me.ok) { location.href = '/login'; return; }
       await loadProfile();
       loadYouTube();
+      loadBlocks();
     })();
   </script>
 </body>

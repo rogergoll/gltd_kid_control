@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import re
 import secrets
+import time
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -11,7 +12,7 @@ from pathlib import Path
 from .auth import SessionManager, hash_password, verify_password
 from .config import ServerConfig, save_config
 from .db import create_store
-from .lists import load_all, parse_csv_text
+from .lists import load_all, load_csv, parse_csv_text
 from .models import HistoryEntry, Profile
 
 SESSION_COOKIE = "kid_sid"
@@ -152,6 +153,9 @@ class KidControlAPI(BaseHTTPRequestHandler):
         elif path == "/api/lists/files":
             if self._require_auth():
                 self._json(app.lists_files())
+        elif path.startswith("/api/lists/file/"):
+            if self._require_auth():
+                self._handle_list_file_get(path)
         elif path == "/api/history":
             if self._require_auth():
                 pid = (qs.get("profile") or [None])[0]
@@ -186,6 +190,11 @@ class KidControlAPI(BaseHTTPRequestHandler):
             self._json(items)
         elif len(parts) >= 5 and parts[4] == "youtube":
             self._json(app.store.list_history(pid))
+        elif len(parts) >= 5 and parts[4] == "blocks":
+            if profile is None:
+                self._json({"error": "perfil não encontrado"}, 404)
+                return
+            self._json(app.profile_blocks(pid))
         elif profile is None:
             self._json({"error": "perfil não encontrado"}, 404)
         else:
@@ -210,6 +219,9 @@ class KidControlAPI(BaseHTTPRequestHandler):
         elif path == "/api/profiles":
             if self._require_auth():
                 self._handle_profile_create(data)
+        elif path.startswith("/api/profiles/") and path.endswith("/unblock"):
+            if self._require_auth():
+                self._handle_unblock(path.split("/")[3], data)
         elif path.startswith("/api/profiles/") and "/block-" in path:
             if self._require_auth():
                 parts = path.split("/")
@@ -269,6 +281,9 @@ class KidControlAPI(BaseHTTPRequestHandler):
         elif path.startswith("/api/profiles/"):
             if self._require_auth():
                 self._handle_profile_update(path.rsplit("/", 1)[-1], data)
+        elif path.startswith("/api/lists/file/"):
+            if self._require_auth():
+                self._handle_list_file_put(path, data)
         else:
             self._json({"error": "rota não encontrada"}, 404)
 
@@ -345,6 +360,8 @@ class KidControlAPI(BaseHTTPRequestHandler):
             allow_lists=data.get("allow_lists") or [],
             filters=data.get("filters") or [],
             client_token=data.get("client_token") or secrets.token_hex(24),
+            daily_limit_minutes=int(data.get("daily_limit_minutes") or 0),
+            youtube_limit_minutes=int(data.get("youtube_limit_minutes") or 0),
         )
         if app.get_profile(profile.id):
             self._json({"error": "já existe um perfil com esse id"}, 400)
@@ -365,6 +382,12 @@ class KidControlAPI(BaseHTTPRequestHandler):
         for key in ("allowed_browsers", "block_lists", "allow_lists", "filters"):
             if key in data:
                 setattr(profile, key, data[key])
+        for key in ("daily_limit_minutes", "youtube_limit_minutes"):
+            if key in data:
+                try:
+                    setattr(profile, key, int(data[key] or 0))
+                except (TypeError, ValueError):
+                    pass
         app.store.upsert_profile(profile.to_dict())
         self._json(profile.to_dict())
 
@@ -454,6 +477,78 @@ class KidControlAPI(BaseHTTPRequestHandler):
         app.reload_lists()
         self._json({"ok": True, "handle": handle, "filename": filename,
                     "categoria": categoria, "block_lists": profile.block_lists}, 201)
+
+    def _handle_unblock(self, pid: str, data: dict) -> None:
+        app = self.server
+        profile = app.get_profile(pid)
+        if profile is None:
+            self._json({"error": "perfil não encontrado"}, 404)
+            return
+        filename = (data.get("file") or "").strip()
+        handle = (data.get("handle") or "").strip()
+        url = (data.get("url") or "").strip()
+        if not filename or not (handle or url):
+            self._json({"error": "informe file e handle/url"}, 400)
+            return
+        path = Path(app.cfg.lists_dir) / filename
+        if not path.exists():
+            self._json({"error": "arquivo de lista não encontrado"}, 404)
+            return
+        removed = False
+        lines = path.read_text(encoding="utf-8").splitlines()
+        keep: list[str] = []
+        for line in lines:
+            cells = [c.strip() for c in line.split(",")]
+            if len(cells) >= 3:
+                match = (cells[0] == handle) if handle else (cells[2] == url)
+                if match:
+                    removed = True
+                    continue
+            keep.append(line)
+        if not removed:
+            self._json({"ok": False, "error": "entrada não encontrada"})
+            return
+        text = "\n".join(keep)
+        if text and not text.endswith("\n"):
+            text += "\n"
+        path.write_text(text, encoding="utf-8")
+        app.reload_lists()
+        self._json({"ok": True, "filename": filename})
+
+    def _handle_list_file_get(self, path: str) -> None:
+        app = self.server
+        filename = urllib.parse.unquote(path.rsplit("/", 1)[-1])
+        fpath = Path(app.cfg.lists_dir) / filename
+        if not fpath.exists():
+            self._json({"error": "lista não encontrada"}, 404)
+            return
+        try:
+            kind, entries = load_csv(fpath)
+        except Exception as exc:  # noqa: BLE001
+            self._json({"error": f"CSV inválido: {exc}"}, 400)
+            return
+        self._json({"filename": filename, "kind": kind, "count": len(entries),
+                    "content": fpath.read_text(encoding="utf-8")})
+
+    def _handle_list_file_put(self, path: str, data: dict) -> None:
+        app = self.server
+        filename = urllib.parse.unquote(path.rsplit("/", 1)[-1]).strip()
+        content = data.get("content")
+        if content is None:
+            self._json({"error": "informe content"}, 400)
+            return
+        try:
+            kind, entries = parse_csv_text(content)
+        except Exception as exc:  # noqa: BLE001
+            self._json({"error": f"CSV inválido: {exc}"}, 400)
+            return
+        if not filename.lower().endswith(".csv"):
+            filename += ".csv"
+        text = content if content.endswith("\n") else content + "\n"
+        dest = Path(app.cfg.lists_dir) / filename
+        dest.write_text(text, encoding="utf-8")
+        app.reload_lists()
+        self._json({"ok": True, "filename": filename, "kind": kind, "count": len(entries)})
 
     def _handle_client_lists(self, qs: dict) -> None:
         token = (qs.get("token") or [""])[0]
@@ -570,13 +665,37 @@ class KidControlServer(ThreadingHTTPServer):
 
     def profile_summary(self, pid: str) -> dict:
         profile = self.get_profile(pid)
+        usage = self.store.app_usage_list(pid, limit=100000)
+        today = time.strftime("%Y-%m-%d")
+        today_seconds = sum(int(e.get("duration_seconds", 0)) for e in usage
+                            if str(e.get("started_at", "")).startswith(today))
         return {
             "profile": profile.to_dict() if profile else None,
             "youtube_count": len(self.store.list_history(pid, limit=100000)),
             "app_totals": self.store.app_usage_totals(pid),
             "url_count": len(self.store.url_list(pid, limit=100000)),
             "client": self.store.client_status(pid),
+            "today_usage_seconds": today_seconds,
         }
+
+    def profile_blocks(self, pid: str) -> dict:
+        """Canais/vídeos/urls bloqueados aplicáveis ao perfil, com o arquivo de origem."""
+        profile = self.get_profile(pid)
+        if profile is None:
+            return {"channels": [], "videos": [], "urls": []}
+        channels, videos, urls = [], [], []
+        for fname in profile.block_lists:
+            for e in self.lists.get("block", {}).get(fname, []):
+                cat = (e.categoria or "").lower()
+                d = e.to_dict()
+                d["file"] = fname
+                if cat == "video":
+                    videos.append(d)
+                elif cat in ("url", "dominio"):
+                    urls.append(d)
+                else:
+                    channels.append(d)
+        return {"channels": channels, "videos": videos, "urls": urls}
 
     def add_filter(self, profile_id: str, expression: str) -> dict:
         profile = self.get_profile(profile_id)

@@ -31,6 +31,8 @@ _SCHEMA = [
         allow_lists TEXT NOT NULL,
         filters TEXT NOT NULL,
         client_token VARCHAR(128) NOT NULL DEFAULT '',
+        daily_limit_minutes INT NOT NULL DEFAULT 0,
+        youtube_limit_minutes INT NOT NULL DEFAULT 0,
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         PRIMARY KEY (id)
@@ -109,13 +111,26 @@ class MariaDBStore:
                 with conn.cursor() as cur:
                     for stmt in _SCHEMA:
                         cur.execute(stmt)
+                    self._migrate(cur)
             finally:
                 conn.close()
+
+    def _migrate(self, cur) -> None:
+        """Adiciona colunas novas a tabelas existentes (instalações antigas)."""
+        cur.execute("SHOW COLUMNS FROM profiles")
+        cols = {r[0] for r in cur.fetchall()}
+        for name, ddl in (
+            ("daily_limit_minutes", "INT NOT NULL DEFAULT 0"),
+            ("youtube_limit_minutes", "INT NOT NULL DEFAULT 0"),
+        ):
+            if name not in cols:
+                cur.execute(f"ALTER TABLE profiles ADD COLUMN {name} {ddl}")
 
     # ---- perfis ----
 
     def list_profiles(self) -> list[dict]:
-        sql = ("SELECT id,name,lan_ip,linux_user,allowed_browsers,block_lists,allow_lists,filters,client_token "
+        sql = ("SELECT id,name,lan_ip,linux_user,allowed_browsers,block_lists,allow_lists,filters,client_token,"
+               "daily_limit_minutes,youtube_limit_minutes "
                "FROM profiles ORDER BY name")
         with self._lock:
             conn = self._connect()
@@ -132,18 +147,23 @@ class MariaDBStore:
             "allow_lists": json.loads(r[6] or "[]"),
             "filters": json.loads(r[7] or "[]"),
             "client_token": r[8] or "",
+            "daily_limit_minutes": int(r[9] or 0),
+            "youtube_limit_minutes": int(r[10] or 0),
         } for r in rows]
 
     def upsert_profile(self, p: dict) -> None:
-        sql = ("INSERT INTO profiles (id,name,lan_ip,linux_user,allowed_browsers,block_lists,allow_lists,filters,client_token) "
-               "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s) "
+        sql = ("INSERT INTO profiles (id,name,lan_ip,linux_user,allowed_browsers,block_lists,allow_lists,filters,client_token,"
+               "daily_limit_minutes,youtube_limit_minutes) "
+               "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) "
                "ON DUPLICATE KEY UPDATE name=VALUES(name), lan_ip=VALUES(lan_ip), linux_user=VALUES(linux_user), "
                "allowed_browsers=VALUES(allowed_browsers), block_lists=VALUES(block_lists), "
-               "allow_lists=VALUES(allow_lists), filters=VALUES(filters), client_token=VALUES(client_token)")
+               "allow_lists=VALUES(allow_lists), filters=VALUES(filters), client_token=VALUES(client_token), "
+               "daily_limit_minutes=VALUES(daily_limit_minutes), youtube_limit_minutes=VALUES(youtube_limit_minutes)")
         args = (p["id"], p["name"], p.get("lan_ip", ""), p.get("linux_user", ""),
                 json.dumps(p.get("allowed_browsers") or []), json.dumps(p.get("block_lists") or []),
                 json.dumps(p.get("allow_lists") or []), json.dumps(p.get("filters") or []),
-                p.get("client_token", ""))
+                p.get("client_token", ""),
+                int(p.get("daily_limit_minutes", 0) or 0), int(p.get("youtube_limit_minutes", 0) or 0))
         with self._lock:
             conn = self._connect()
             try:
